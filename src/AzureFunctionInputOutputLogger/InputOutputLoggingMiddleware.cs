@@ -17,17 +17,17 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
     private static readonly ConcurrentDictionary<(string? Assembly, string? EntryPoint), bool> MarkerCache = new();
 
     private readonly ILogger<InputOutputLoggingMiddleware> _logger;
-    private readonly InputOutputLoggingOptions _options;
+    private readonly bool _requireMarkerAttribute;
     private readonly Func<FunctionContext, ValueTask<HttpRequestData?>> _getRequest;
     private readonly Func<FunctionContext, HttpResponseData?> _getResponse;
     private readonly Func<FunctionContext, bool> _isMarked;
 
     public InputOutputLoggingMiddleware(
         ILogger<InputOutputLoggingMiddleware> logger,
-        InputOutputLoggingOptions options)
+        bool requireMarkerAttribute)
         : this(
             logger,
-            options,
+            requireMarkerAttribute,
             context => context.GetHttpRequestDataAsync(),
             context => context.GetHttpResponseData(),
             HasMarker)
@@ -37,13 +37,13 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
     // The SDK's request/response accessors depend on internal types, so tests substitute them here.
     internal InputOutputLoggingMiddleware(
         ILogger<InputOutputLoggingMiddleware> logger,
-        InputOutputLoggingOptions options,
+        bool requireMarkerAttribute,
         Func<FunctionContext, ValueTask<HttpRequestData?>> getRequest,
         Func<FunctionContext, HttpResponseData?> getResponse,
         Func<FunctionContext, bool> isMarked)
     {
         _logger = logger;
-        _options = options;
+        _requireMarkerAttribute = requireMarkerAttribute;
         _getRequest = getRequest;
         _getResponse = getResponse;
         _isMarked = isMarked;
@@ -51,7 +51,7 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
-        if (_options.RequireMarkerAttribute && !_isMarked(context))
+        if (_requireMarkerAttribute && !_isMarked(context))
         {
             await next(context);
             return;
