@@ -10,7 +10,7 @@ Add the package, then register the middleware when configuring the worker:
 <a id='snippet-register-middleware'></a>
 ```cs
 var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults(worker => worker.UseInputOutputLogging())
+    .ConfigureFunctionsWorkerDefaults(worker => worker.UseInputOutputLogging(requireMarkerAttribute: false))
     .Build();
 
 host.Run();

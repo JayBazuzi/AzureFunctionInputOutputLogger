@@ -10,7 +10,7 @@ public class InputOutputLoggingMiddlewareTests
         bool requireMarkerAttribute = false) =>
         new(
             logger,
-            new InputOutputLoggingOptions(requireMarkerAttribute),
+            requireMarkerAttribute,
             context => new ValueTask<HttpRequestData?>(((FakeFunctionContext)context).Request),
             context => ((FakeFunctionContext)context).Response,
             context => ((FakeFunctionContext)context).IsMarked);
