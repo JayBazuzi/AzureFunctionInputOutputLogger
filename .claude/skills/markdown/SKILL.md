@@ -1,6 +1,6 @@
 ---
 name: markdown
-description: Use when writing or reviewing Markdown such as the README or docs.
+description: Markdown style preferences for this project (headings, MarkdownSnippets, lists, line breaks). Use when writing or reviewing Markdown such as the README or docs.
 ---
 
 ## Headings
@@ -9,7 +9,15 @@ Use ATX headings (`#`, `##`) with a single H1 per file. Don't skip heading level
 
 ## Code
 
-Use Markdown Snippets. Don't edit the snippet contents directly; instead, edit the source files they reference.
+Use [MarkdownSnippets](https://github.com/SimonCropp/MarkdownSnippets) (`mdsnippets`) for code in Markdown.
+Don't edit generated content between `<!-- snippet: ... -->` and `<!-- endSnippet -->`; edit the source file instead, then run `tidy-code.cmd` (or `dotnet mdsnippets`) to regenerate.
+
+### snippet include types:
+
+- `snippet`: Standard snippet by key.
+- `web-snippet`: Snippet from a remote file.
+- `include`: Reusable Markdown content.
+- `toc`: Table of contents.
 
 ## Lists
 
