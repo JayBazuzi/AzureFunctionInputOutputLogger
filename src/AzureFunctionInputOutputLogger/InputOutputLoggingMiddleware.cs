@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,30 +12,51 @@ namespace AzureFunctionInputOutputLogger;
 /// Logs the query parameters and body of each HTTP request, and the status code and body of its response.
 /// Invocations that are not HTTP-triggered are passed through untouched.
 /// </summary>
-public sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
+internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
 {
+    private static readonly ConcurrentDictionary<(string? Assembly, string? EntryPoint), bool> MarkerCache = new();
+
     private readonly ILogger<InputOutputLoggingMiddleware> _logger;
+    private readonly InputOutputLoggingOptions _options;
     private readonly Func<FunctionContext, ValueTask<HttpRequestData?>> _getRequest;
     private readonly Func<FunctionContext, HttpResponseData?> _getResponse;
+    private readonly Func<FunctionContext, bool> _isMarked;
 
-    public InputOutputLoggingMiddleware(ILogger<InputOutputLoggingMiddleware> logger)
-        : this(logger, context => context.GetHttpRequestDataAsync(), context => context.GetHttpResponseData())
+    public InputOutputLoggingMiddleware(
+        ILogger<InputOutputLoggingMiddleware> logger,
+        InputOutputLoggingOptions options)
+        : this(
+            logger,
+            options,
+            context => context.GetHttpRequestDataAsync(),
+            context => context.GetHttpResponseData(),
+            HasMarker)
     {
     }
 
     // The SDK's request/response accessors depend on internal types, so tests substitute them here.
     internal InputOutputLoggingMiddleware(
         ILogger<InputOutputLoggingMiddleware> logger,
+        InputOutputLoggingOptions options,
         Func<FunctionContext, ValueTask<HttpRequestData?>> getRequest,
-        Func<FunctionContext, HttpResponseData?> getResponse)
+        Func<FunctionContext, HttpResponseData?> getResponse,
+        Func<FunctionContext, bool> isMarked)
     {
         _logger = logger;
+        _options = options;
         _getRequest = getRequest;
         _getResponse = getResponse;
+        _isMarked = isMarked;
     }
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
+        if (_options.RequireMarkerAttribute && !_isMarked(context))
+        {
+            await next(context);
+            return;
+        }
+
         var request = await _getRequest(context);
         if (request is null)
         {
@@ -60,6 +83,43 @@ public sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
             "Response {StatusCode} body: {Body}",
             (int)response.StatusCode,
             await ReadBodyAsync(response.Body));
+    }
+
+    // The entry point is "Namespace.Class.Method"; the attribute may be on the method or its class.
+    private static bool HasMarker(FunctionContext context)
+    {
+        var definition = context.FunctionDefinition;
+        return MarkerCache.GetOrAdd((definition.PathToAssembly, definition.EntryPoint), key =>
+        {
+            if (key.Assembly is null || key.EntryPoint is null)
+            {
+                return false;
+            }
+
+            var split = key.EntryPoint.LastIndexOf('.');
+            if (split < 0)
+            {
+                return false;
+            }
+
+            var assemblyName = AssemblyName.GetAssemblyName(key.Assembly);
+            var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => AssemblyName.ReferenceMatchesDefinition(a.GetName(), assemblyName))
+                ?? Assembly.LoadFrom(key.Assembly);
+
+            var type = assembly.GetType(key.EntryPoint[..split]);
+            if (type is null)
+            {
+                return false;
+            }
+
+            var method = type.GetMethod(
+                key.EntryPoint[(split + 1)..],
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+
+            return type.IsDefined(typeof(LogInputOutputAttribute), inherit: true)
+                || (method?.IsDefined(typeof(LogInputOutputAttribute), inherit: true) ?? false);
+        });
     }
 
     private static string FormatQuery(HttpRequestData request) =>

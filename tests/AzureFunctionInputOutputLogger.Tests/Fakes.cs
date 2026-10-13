@@ -37,6 +37,8 @@ internal sealed class FakeFunctionContext : FunctionContext
 {
     private readonly FakeFeatures _features = new();
 
+    public bool IsMarked { get; set; }
+
     public HttpRequestData? Request { get; set; }
 
     public HttpResponseData? Response { get; set; }

@@ -1,4 +1,5 @@
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace AzureFunctionInputOutputLogger;
@@ -6,8 +7,12 @@ namespace AzureFunctionInputOutputLogger;
 public static class FunctionsWorkerApplicationBuilderExtensions
 {
     /// <summary>
-    /// Logs the query parameters, request body and response body of every HTTP-triggered function.
     /// </summary>
-    public static IFunctionsWorkerApplicationBuilder UseInputOutputLogging(this IFunctionsWorkerApplicationBuilder builder) =>
-        builder.UseMiddleware<InputOutputLoggingMiddleware>();
+    public static IFunctionsWorkerApplicationBuilder UseInputOutputLogging(
+        this IFunctionsWorkerApplicationBuilder builder,
+        bool requireMarkerAttribute = false)
+    {
+        builder.Services.AddSingleton(new InputOutputLoggingOptions(requireMarkerAttribute));
+        return builder.UseMiddleware<InputOutputLoggingMiddleware>();
+    }
 }

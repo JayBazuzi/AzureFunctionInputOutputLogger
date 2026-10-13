@@ -5,11 +5,38 @@ namespace AzureFunctionInputOutputLogger.Tests;
 
 public class InputOutputLoggingMiddlewareTests
 {
-    private static InputOutputLoggingMiddleware CreateMiddleware(CapturingLogger<InputOutputLoggingMiddleware> logger) =>
+    private static InputOutputLoggingMiddleware CreateMiddleware(
+        CapturingLogger<InputOutputLoggingMiddleware> logger,
+        bool requireMarkerAttribute = false) =>
         new(
             logger,
+            new InputOutputLoggingOptions(requireMarkerAttribute),
             context => new ValueTask<HttpRequestData?>(((FakeFunctionContext)context).Request),
-            context => ((FakeFunctionContext)context).Response);
+            context => ((FakeFunctionContext)context).Response,
+            context => ((FakeFunctionContext)context).IsMarked);
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task MarkerIsOnlyRequiredWhenOptionIsEnabled(bool requireMarkerAttribute, bool isMarked)
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var context = new FakeFunctionContext { IsMarked = isMarked };
+        context.Request = new FakeHttpRequestData(context, "GET", "https://example.test/api/x", "");
+        var called = false;
+
+        await CreateMiddleware(logger, requireMarkerAttribute).Invoke(context, ctx =>
+        {
+            called = true;
+            context.Response = new FakeHttpResponseData(ctx, HttpStatusCode.OK, "");
+            return Task.CompletedTask;
+        });
+
+        Assert.True(called);
+        Assert.Equal(!requireMarkerAttribute || isMarked, logger.Messages.Count > 0);
+    }
 
     [Fact]
     public async Task LogsRequestAndResponseAsSeparateEntries()
