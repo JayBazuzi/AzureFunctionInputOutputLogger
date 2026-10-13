@@ -1,5 +1,10 @@
 # AzureFunctionInputOutputLogger
 
+[![Build and Test](https://github.com/JayBazuzi/AzureFunctionInputOutputLogger/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/JayBazuzi/AzureFunctionInputOutputLogger/actions/workflows/build-and-test.yml)
+[![NuGet](https://img.shields.io/nuget/v/AzureFunctionInputOutputLogger.svg)](https://www.nuget.org/packages/AzureFunctionInputOutputLogger)
+[![NuGet downloads](https://img.shields.io/nuget/dt/AzureFunctionInputOutputLogger.svg)](https://www.nuget.org/packages/AzureFunctionInputOutputLogger)
+[![License](https://img.shields.io/github/license/JayBazuzi/AzureFunctionInputOutputLogger.svg)](LICENSE)
+
 Middleware for Azure Functions (.NET isolated worker model) that logs the query parameters and body of every HTTP request, and the status code and body of its response.
 
 ## Usage
