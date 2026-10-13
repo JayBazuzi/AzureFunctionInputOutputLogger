@@ -1,0 +1,4 @@
+﻿[
+  Information: Request POST /api/orders query: a=1&b=two body: {"item":"widget"},
+  Information: Response 201 body: {"id":42}
+]

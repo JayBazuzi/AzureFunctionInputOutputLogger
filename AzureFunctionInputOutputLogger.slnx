@@ -1,1 +1,11 @@
-<Solution />
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AzureFunctionInputOutputLogger/AzureFunctionInputOutputLogger.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/SampleFunctionApp/SampleFunctionApp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AzureFunctionInputOutputLogger.Tests/AzureFunctionInputOutputLogger.Tests.csproj" />
+  </Folder>
+</Solution>

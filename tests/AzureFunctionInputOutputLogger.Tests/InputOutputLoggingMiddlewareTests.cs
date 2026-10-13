@@ -1,0 +1,60 @@
+using System.Net;
+using Microsoft.Azure.Functions.Worker.Http;
+
+namespace AzureFunctionInputOutputLogger.Tests;
+
+public class InputOutputLoggingMiddlewareTests
+{
+    private static InputOutputLoggingMiddleware CreateMiddleware(CapturingLogger<InputOutputLoggingMiddleware> logger) =>
+        new(
+            logger,
+            context => new ValueTask<HttpRequestData?>(((FakeFunctionContext)context).Request),
+            context => ((FakeFunctionContext)context).Response);
+
+    [Fact]
+    public async Task LogsRequestAndResponseAsSeparateEntries()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var context = new FakeFunctionContext();
+        context.Request = new FakeHttpRequestData(context, "POST", "https://example.test/api/orders?a=1&b=two", """{"item":"widget"}""");
+
+        await CreateMiddleware(logger).Invoke(context, ctx =>
+        {
+            context.Response = new FakeHttpResponseData(ctx, HttpStatusCode.Created, """{"id":42}""");
+            return Task.CompletedTask;
+        });
+
+        await Verify(logger.Messages);
+    }
+
+    [Fact]
+    public async Task BodiesRemainReadableAfterLogging()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var context = new FakeFunctionContext();
+        var request = new FakeHttpRequestData(context, "POST", "https://example.test/api/x", "payload");
+        context.Request = request;
+
+        string? seenByFunction = null;
+        await CreateMiddleware(logger).Invoke(context, async _ =>
+            seenByFunction = await new StreamReader(request.Body).ReadToEndAsync());
+
+        Assert.Equal("payload", seenByFunction);
+    }
+
+    [Fact]
+    public async Task NonHttpInvocationsAreNotLogged()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var called = false;
+
+        await CreateMiddleware(logger).Invoke(new FakeFunctionContext(), _ =>
+        {
+            called = true;
+            return Task.CompletedTask;
+        });
+
+        Assert.True(called);
+        Assert.Empty(logger.Messages);
+    }
+}
