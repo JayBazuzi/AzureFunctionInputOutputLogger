@@ -2,7 +2,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
@@ -85,10 +84,8 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
             var request = httpContext.Request;
             request.EnableBuffering();
 
-            _logger.LogInformation(
-                "Request {Method} {Path} query: {Query} body: {Body}",
-                request.Method,
-                request.Path.Value,
+            InputOutputLoggingMiddleware.LogRequest(
+                _logger,
                 FormatQuery(request),
                 await InputOutputLoggingMiddleware.ReadBodyAsync(request.Body));
         }
@@ -100,26 +97,16 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
             return;
         }
 
-        var response = await DescribeResultAsync(_getInvocationResult(context));
-        if (response is null)
-        {
-            return;
-        }
-
-        _logger.LogInformation(
-            "Response {StatusCode} body: {Body}",
-            response.Value.StatusCode,
-            response.Value.Body);
+        InputOutputLoggingMiddleware.LogResponse(_logger, await DescribeBodyAsync(_getInvocationResult(context)));
     }
 
-    // Results that carry no status code (anything that isn't an IActionResult with one, or HttpResponseData) are not logged.
-    private static async Task<(int StatusCode, string Body)?> DescribeResultAsync(object? result)
+    // Only an ObjectResult's value and an HttpResponseData's body are logged; other results have no body we can read.
+    private static async Task<string> DescribeBodyAsync(object? result)
         => result switch
         {
-            ObjectResult objectResult => (objectResult.StatusCode ?? StatusCodes.Status200OK, JsonSerializer.Serialize(objectResult.Value, JsonOptions)),
-            IStatusCodeActionResult statusCodeResult => (statusCodeResult.StatusCode ?? StatusCodes.Status200OK, ""),
-            HttpResponseData responseData => ((int)responseData.StatusCode, await InputOutputLoggingMiddleware.ReadBodyAsync(responseData.Body)),
-            _ => null,
+            ObjectResult objectResult => JsonSerializer.Serialize(objectResult.Value, JsonOptions),
+            HttpResponseData responseData => await InputOutputLoggingMiddleware.ReadBodyAsync(responseData.Body),
+            _ => "",
         };
 
     private string FormatQuery(HttpRequest request)

@@ -26,7 +26,7 @@ public class InputOutputLoggingMiddlewareTests
     {
         var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
         var context = new FakeFunctionContext { MarkedParts = isMarked ? LoggedParts.InputAndOutput : LoggedParts.None };
-        context.Request = new FakeHttpRequestData(context, "GET", "https://example.test/api/x", "");
+        context.Request = new FakeHttpRequestData(context, "GET", "https://example.test/api/x?a=1", "");
         var called = false;
 
         await CreateMiddleware(logger, requireMarkerAttribute).Invoke(context, ctx =>
@@ -105,6 +105,22 @@ public class InputOutputLoggingMiddlewareTests
         });
 
         await Verify(logger.Messages);
+    }
+
+    [Fact]
+    public async Task SkipsEntriesWithNothingToLog()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var context = new FakeFunctionContext();
+        context.Request = new FakeHttpRequestData(context, "GET", "https://example.test/api/orders/7", "");
+
+        await CreateMiddleware(logger).Invoke(context, ctx =>
+        {
+            context.Response = new FakeHttpResponseData(ctx, HttpStatusCode.NotFound, "");
+            return Task.CompletedTask;
+        });
+
+        Assert.Empty(logger.Messages);
     }
 
     [Fact]

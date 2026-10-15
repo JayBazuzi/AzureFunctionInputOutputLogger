@@ -1,9 +1,11 @@
 ## What gets logged
 
-Each HTTP-triggered invocation produces two `Information` log entries, with these message templates:
+Each HTTP-triggered invocation produces up to two `Information` log entries, one for the request and one for the response, with these message templates:
 
-- `Request {Method} {Path} query: {Query} body: {Body}`
-- `Response {StatusCode} body: {Body}`
+- `Request query: {Query} body: {Body}`, or `Request query: {Query}` or `Request body: {Body}` when the other part is empty
+- `Response body: {Body}`
+
+An entry with nothing to log (a request with no query and no body, or a response with an empty body) is skipped.
 
 For example:
 
@@ -15,9 +17,16 @@ To redact other query parameters, such as `access_token` or `sig`, add them to `
 The logger category is `Bazuzi.AzureFunctionInputOutputLogger.InputOutputLoggingMiddleware` for every function, in both packages.
 In Application Insights, find the entries for a function or an invocation with `operation_Name` or `customDimensions.InvocationId` rather than with the category.
 
-The Functions host and Application Insights already record the function name, invocation ID and duration, and the `requests` table has the path (with route values) and status code.
+### What the host already logs
+
+The Functions host and Application Insights already record the function name, invocation ID and duration.
+The `requests` table has the path (in `url`, with route values), the HTTP method (in `customDimensions.HttpMethod`) and the status code (in `resultCode`).
 They don't record the query string (it isn't part of `requests.url`), the request body or the response body; with ASP.NET Core integration the host logs only the result's type, not its value.
-That gap is what this package fills, so the messages don't repeat the function name.
+That gap is what this package fills, so the messages log only the query and bodies, and don't repeat the function name, method, path or status code.
+
+To see them together, join the log entries to `requests` on `operation_Id`:
+
+snippet: docs\join-requests.kql
 
 ### Keeping sensitive endpoints out of the logs
 

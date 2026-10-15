@@ -3,7 +3,7 @@
     Message: hi
   },
   Messages: [
-    Information: Request POST /api/x query:  body: {"message":"hi"},
-    Information: Response 200 body: {"youSaid":"hi"}
+    Information: Request body: {"message":"hi"},
+    Information: Response body: {"youSaid":"hi"}
   ]
 }

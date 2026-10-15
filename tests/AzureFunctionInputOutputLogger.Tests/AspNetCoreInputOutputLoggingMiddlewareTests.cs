@@ -108,7 +108,7 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
     }
 
     [Fact]
-    public async Task LogsStatusCodeResultWithEmptyBody()
+    public async Task SkipsEntriesWithNothingToLog()
     {
         var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
         var invocation = new Invocation
@@ -122,7 +122,7 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
             return Task.CompletedTask;
         });
 
-        await Verify(logger.Messages);
+        Assert.Empty(logger.Messages);
     }
 
     [Fact]
@@ -194,13 +194,13 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
         var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
         var invocation = new Invocation
         {
-            HttpContext = CreateHttpContext("GET", "/api/x", "", ""),
+            HttpContext = CreateHttpContext("GET", "/api/x", "?a=1", ""),
         };
         invocation.Context.MarkedParts = LoggedParts.InputAndOutput;
 
         await CreateMiddleware(logger, invocation, requireMarkerAttribute: true).Invoke(invocation.Context, _ =>
         {
-            invocation.Result = new OkResult();
+            invocation.Result = new OkObjectResult("hello");
             return Task.CompletedTask;
         });
 
@@ -234,7 +234,7 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
         var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
         var invocation = new Invocation
         {
-            HttpContext = CreateHttpContext("GET", "/api/x", "", ""),
+            HttpContext = CreateHttpContext("GET", "/api/x", "?a=1", ""),
         };
 
         await CreateMiddleware(logger, invocation).Invoke(invocation.Context, _ =>

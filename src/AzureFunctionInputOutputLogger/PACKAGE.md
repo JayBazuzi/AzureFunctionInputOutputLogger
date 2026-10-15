@@ -1,6 +1,6 @@
 # Bazuzi.AzureFunctionInputOutputLogger
 
-Middleware for Azure Functions (.NET isolated worker model) that logs the query parameters and body of every HTTP request, and the status code and body of its response.
+Middleware for Azure Functions (.NET isolated worker model) that logs the query parameters and body of every HTTP request, and the body of its response.
 
 This package is for apps using the built-in HTTP model (`ConfigureFunctionsWorkerDefaults`, `HttpRequestData`, `HttpResponseData`).
 For ASP.NET Core integration (`ConfigureFunctionsWebApplication`, `HttpRequest`, `IActionResult`), use [Bazuzi.AzureFunctionInputOutputLogger.AspNetCore](https://www.nuget.org/packages/Bazuzi.AzureFunctionInputOutputLogger.AspNetCore) instead.
@@ -36,10 +36,12 @@ worker.UseInputOutputLogging(options =>
 
 ## What gets logged<!-- include: log-output. path: /docs/log-output.include.md -->
 
-Each HTTP-triggered invocation produces two `Information` log entries, with these message templates:
+Each HTTP-triggered invocation produces up to two `Information` log entries, one for the request and one for the response, with these message templates:
 
-- `Request {Method} {Path} query: {Query} body: {Body}`
-- `Response {StatusCode} body: {Body}`
+- `Request query: {Query} body: {Body}`, or `Request query: {Query}` or `Request body: {Body}` when the other part is empty
+- `Response body: {Body}`
+
+An entry with nothing to log (a request with no query and no body, or a response with an empty body) is skipped.
 
 For example:
 
@@ -47,8 +49,8 @@ For example:
 <a id='snippet-tests\AzureFunctionInputOutputLogger.Tests\InputOutputLoggingMiddlewareTests.LogsRequestAndResponseAsSeparateEntries.verified.txt'></a>
 ```txt
 [
-  Information: Request POST /api/orders query: code=[redacted]&a=1&b=two body: {"item":"widget"},
-  Information: Response 201 body: {"id":42}
+  Information: Request query: code=[redacted]&a=1&b=two body: {"item":"widget"},
+  Information: Response body: {"id":42}
 ]
 ```
 <sup><a href='#snippet-tests\AzureFunctionInputOutputLogger.Tests\InputOutputLoggingMiddlewareTests.LogsRequestAndResponseAsSeparateEntries.verified.txt' title='Start of snippet'>anchor</a></sup>
@@ -60,9 +62,29 @@ To redact other query parameters, such as `access_token` or `sig`, add them to `
 The logger category is `Bazuzi.AzureFunctionInputOutputLogger.InputOutputLoggingMiddleware` for every function, in both packages.
 In Application Insights, find the entries for a function or an invocation with `operation_Name` or `customDimensions.InvocationId` rather than with the category.
 
-The Functions host and Application Insights already record the function name, invocation ID and duration, and the `requests` table has the path (with route values) and status code.
+### What the host already logs
+
+The Functions host and Application Insights already record the function name, invocation ID and duration.
+The `requests` table has the path (in `url`, with route values), the HTTP method (in `customDimensions.HttpMethod`) and the status code (in `resultCode`).
 They don't record the query string (it isn't part of `requests.url`), the request body or the response body; with ASP.NET Core integration the host logs only the result's type, not its value.
-That gap is what this package fills, so the messages don't repeat the function name.
+That gap is what this package fills, so the messages log only the query and bodies, and don't repeat the function name, method, path or status code.
+
+To see them together, join the log entries to `requests` on `operation_Id`:
+
+<!-- snippet: docs\join-requests.kql -->
+<a id='snippet-docs\join-requests.kql'></a>
+```kql
+traces
+| where operation_Name == "EchoFunction"
+| where message startswith "Request " or message startswith "Response "
+| join kind=inner (
+    requests
+    | project operation_Id, method = tostring(customDimensions.HttpMethod), url, resultCode
+  ) on operation_Id
+| project timestamp, method, url, resultCode, message
+```
+<sup><a href='#snippet-docs\join-requests.kql' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
 
 ### Keeping sensitive endpoints out of the logs
 

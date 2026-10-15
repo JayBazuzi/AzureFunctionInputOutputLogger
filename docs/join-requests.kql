@@ -1,0 +1,8 @@
+traces
+| where operation_Name == "EchoFunction"
+| where message startswith "Request " or message startswith "Response "
+| join kind=inner (
+    requests
+    | project operation_Id, method = tostring(customDimensions.HttpMethod), url, resultCode
+  ) on operation_Id
+| project timestamp, method, url, resultCode, message

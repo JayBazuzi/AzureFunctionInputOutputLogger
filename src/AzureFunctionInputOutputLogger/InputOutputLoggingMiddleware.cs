@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace Bazuzi.AzureFunctionInputOutputLogger;
 
 /// <summary>
-/// Logs the query parameters and body of each HTTP request, and the status code and body of its response.
+/// Logs the query parameters and body of each HTTP request, and the body of its response.
 /// Invocations that are not HTTP-triggered are passed through untouched.
 /// </summary>
 internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
@@ -72,12 +72,7 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
 
         if (parts.HasFlag(LoggedParts.Input))
         {
-            _logger.LogInformation(
-                "Request {Method} {Path} query: {Query} body: {Body}",
-                request.Method,
-                request.Url.AbsolutePath,
-                FormatQuery(request),
-                await ReadBodyAsync(request.Body));
+            LogRequest(_logger, FormatQuery(request), await ReadBodyAsync(request.Body));
         }
 
         await next(context);
@@ -93,10 +88,33 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
             return;
         }
 
-        _logger.LogInformation(
-            "Response {StatusCode} body: {Body}",
-            (int)response.StatusCode,
-            await ReadBodyAsync(response.Body));
+        LogResponse(_logger, await ReadBodyAsync(response.Body));
+    }
+
+    // The host's requests table already has the method and path (customDimensions.HttpMethod and HttpPath)
+    // and the status code (resultCode), so only the query and bodies are logged, and empty parts are left out.
+    internal static void LogRequest(ILogger logger, string query, string body)
+    {
+        if (query.Length > 0 && body.Length > 0)
+        {
+            logger.LogInformation("Request query: {Query} body: {Body}", query, body);
+        }
+        else if (query.Length > 0)
+        {
+            logger.LogInformation("Request query: {Query}", query);
+        }
+        else if (body.Length > 0)
+        {
+            logger.LogInformation("Request body: {Body}", body);
+        }
+    }
+
+    internal static void LogResponse(ILogger logger, string body)
+    {
+        if (body.Length > 0)
+        {
+            logger.LogInformation("Response body: {Body}", body);
+        }
     }
 
     // The entry point is "Namespace.Class.Method"; the attributes may be on the method or its class.
