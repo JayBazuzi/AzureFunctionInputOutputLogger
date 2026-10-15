@@ -85,8 +85,8 @@ Each HTTP-triggered invocation then produces two `Information` log entries:
 
 ## Logging only marked functions
 
-To log only the functions you opt in, require the marker attribute and put `[LogInputOutput]` on the function method (or its class).
-To log only the request, use `[LogInput]`; to log only the response, use `[LogOutput]`.
+To log only the functions you opt in, require the marker attribute and put `[LogFunctionInputsAndOutputs]` on the function method (or its class).
+To log only the request, use `[LogFunctionInputs]`; to log only the response, use `[LogFunctionOutputs]`.
 This works the same way in both packages.
 
 <!-- snippet: aspnetcore-require-marker-attribute -->
@@ -101,7 +101,7 @@ worker.UseAspNetCoreInputOutputLogging(requireMarkerAttribute: true);
 <a id='snippet-aspnetcore-marker-attribute-example'></a>
 ```cs
 [Function("MyFunction")]
-[LogInputOutput]
+[LogFunctionInputsAndOutputs]
 public async Task<IActionResult> Run(
     [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest request)
 {
@@ -123,7 +123,7 @@ worker.UseInputOutputLogging(requireMarkerAttribute: true);
 <a id='snippet-marker-attribute-example'></a>
 ```cs
 [Function("MyFunction")]
-[LogInputOutput]
+[LogFunctionInputsAndOutputs]
 public async Task<HttpResponseData> Run(
     [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData request)
 {
@@ -138,7 +138,7 @@ public async Task<HttpResponseData> Run(
 - With the built-in HTTP model, bodies are only logged when the stream can be rewound, so the function and the host still see them unconsumed.
   Otherwise the log shows `[body not logged: stream is not seekable]` rather than breaking the invocation.
 - Bodies are logged verbatim, so avoid using this where payloads may contain secrets or personal data.
-  If some of your functions process sensitive data, disable automatic logging and add `LogInputOutput` only to the functions that are safe to log.
+  If some of your functions process sensitive data, disable automatic logging and add `LogFunctionInputsAndOutputs` only to the functions that are safe to log.
 
 ## Build and test
 

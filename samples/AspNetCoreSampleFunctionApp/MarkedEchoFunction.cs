@@ -9,7 +9,7 @@ public class MarkedEchoFunction
 {
     // begin-snippet: aspnetcore-marker-attribute-example
     [Function("MyFunction")]
-    [LogInputOutput]
+    [LogFunctionInputsAndOutputs]
     public async Task<IActionResult> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest request)
     {

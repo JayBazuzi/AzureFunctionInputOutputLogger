@@ -9,7 +9,7 @@ public class MarkedEchoFunction
 {
     // begin-snippet: marker-attribute-example
     [Function("MyFunction")]
-    [LogInputOutput]
+    [LogFunctionInputsAndOutputs]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData request)
     {

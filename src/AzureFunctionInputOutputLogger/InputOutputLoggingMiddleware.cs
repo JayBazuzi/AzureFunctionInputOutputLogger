@@ -131,12 +131,12 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
                 || (method?.IsDefined(typeof(TAttribute), inherit: true) ?? false);
 
             var parts = LoggedParts.None;
-            if (IsMarkedWith<LogInputOutputAttribute>() || IsMarkedWith<LogInputAttribute>())
+            if (IsMarkedWith<LogFunctionInputsAndOutputsAttribute>() || IsMarkedWith<LogFunctionInputsAttribute>())
             {
                 parts |= LoggedParts.Input;
             }
 
-            if (IsMarkedWith<LogInputOutputAttribute>() || IsMarkedWith<LogOutputAttribute>())
+            if (IsMarkedWith<LogFunctionInputsAndOutputsAttribute>() || IsMarkedWith<LogFunctionOutputsAttribute>())
             {
                 parts |= LoggedParts.Output;
             }

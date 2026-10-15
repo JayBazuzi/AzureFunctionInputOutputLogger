@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Shares [LogInputOutput] and the built-in HTTP model's middleware, which handles invocations without an HttpContext. -->
+    <!-- Shares [LogFunctionInputsAndOutputs] and the built-in HTTP model's middleware, which handles invocations without an HttpContext. -->
     <ProjectReference Include="..\AzureFunctionInputOutputLogger\AzureFunctionInputOutputLogger.csproj" />
   </ItemGroup>
 </Project>
