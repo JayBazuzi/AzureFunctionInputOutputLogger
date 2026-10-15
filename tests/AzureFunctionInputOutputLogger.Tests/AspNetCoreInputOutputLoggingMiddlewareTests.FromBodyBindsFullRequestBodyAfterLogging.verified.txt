@@ -1,0 +1,9 @@
+﻿{
+  boundByFromBody: {
+    Message: hi
+  },
+  Messages: [
+    Information: Request POST /api/x query:  body: {"message":"hi"},
+    Information: Response 200 body: {"youSaid":"hi"}
+  ]
+}

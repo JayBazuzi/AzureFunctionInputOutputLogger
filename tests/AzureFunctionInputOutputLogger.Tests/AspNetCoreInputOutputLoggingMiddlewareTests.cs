@@ -106,6 +106,29 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
         await Verify(new { seenByFunction, logger.Messages });
     }
 
+    private sealed record EchoRequest(string Message);
+
+    [Fact]
+    public async Task FromBodyBindsFullRequestBodyAfterLogging()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var invocation = new Invocation
+        {
+            HttpContext = CreateHttpContext("POST", "/api/x", "", """{"message":"hi"}"""),
+        };
+        invocation.HttpContext.Request.ContentType = "application/json";
+
+        EchoRequest? boundByFromBody = null;
+        await CreateMiddleware(logger, invocation).Invoke(invocation.Context, async _ =>
+        {
+            // The ASP.NET Core integration binds [FromBody] parameters by deserializing the request body like this.
+            boundByFromBody = await invocation.HttpContext.Request.ReadFromJsonAsync<EchoRequest>();
+            invocation.Result = new OkObjectResult(new { youSaid = boundByFromBody?.Message });
+        });
+
+        await Verify(new { boundByFromBody, logger.Messages });
+    }
+
     [Fact]
     public async Task UnmarkedFunctionIsNotLoggedWhenMarkerIsRequired()
     {
