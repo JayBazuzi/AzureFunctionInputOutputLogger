@@ -70,6 +70,24 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
     }
 
     [Fact]
+    public async Task RedactsFunctionKeyInQuery()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var invocation = new Invocation
+        {
+            HttpContext = CreateHttpContext("GET", "/api/orders", "?Code=secret1&code=secret2&name=widget&tag=a&tag=b", ""),
+        };
+
+        await CreateMiddleware(logger, invocation).Invoke(invocation.Context, _ =>
+        {
+            invocation.Result = new OkResult();
+            return Task.CompletedTask;
+        });
+
+        await Verify(logger.Messages);
+    }
+
+    [Fact]
     public async Task LogsStatusCodeResultWithEmptyBody()
     {
         var logger = new CapturingLogger<InputOutputLoggingMiddleware>();

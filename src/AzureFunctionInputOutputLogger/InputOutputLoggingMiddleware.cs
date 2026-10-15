@@ -146,12 +146,11 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
     }
 
     private static string FormatQuery(HttpRequestData request)
-        => string.Join(
-            "&",
+        => QueryFormatter.Format(
             request.Query.AllKeys
-                .Where(key => key is not null)
+                .OfType<string>()
                 .SelectMany(key => (request.Query.GetValues(key) ?? [])
-                    .Select(value => $"{key}={value}")));
+                    .Select(value => (key, (string?)value))));
 
     // The body is only logged when the stream can be rewound, so that the function (or the host)
     // still sees it unconsumed. Otherwise we note that it was skipped rather than break the invocation.

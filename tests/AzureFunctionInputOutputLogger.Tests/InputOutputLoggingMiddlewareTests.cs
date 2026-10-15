@@ -74,6 +74,22 @@ public class InputOutputLoggingMiddlewareTests
     }
 
     [Fact]
+    public async Task RedactsFunctionKeyInQuery()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var context = new FakeFunctionContext();
+        context.Request = new FakeHttpRequestData(context, "GET", "https://example.test/api/orders?Code=secret1&code=secret2&name=widget&tag=a&tag=b", "");
+
+        await CreateMiddleware(logger).Invoke(context, ctx =>
+        {
+            context.Response = new FakeHttpResponseData(ctx, HttpStatusCode.OK, "");
+            return Task.CompletedTask;
+        });
+
+        await Verify(logger.Messages);
+    }
+
+    [Fact]
     public async Task BodiesRemainReadableAfterLogging()
     {
         var logger = new CapturingLogger<InputOutputLoggingMiddleware>();

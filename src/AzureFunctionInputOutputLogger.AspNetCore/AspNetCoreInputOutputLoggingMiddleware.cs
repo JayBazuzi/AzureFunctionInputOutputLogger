@@ -118,7 +118,6 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
         };
 
     private static string FormatQuery(HttpRequest request)
-        => string.Join(
-            "&",
-            request.Query.SelectMany(pair => pair.Value.Select(value => $"{pair.Key}={value}")));
+        => QueryFormatter.Format(
+            request.Query.SelectMany(pair => pair.Value.Select(value => (pair.Key, value))));
 }
