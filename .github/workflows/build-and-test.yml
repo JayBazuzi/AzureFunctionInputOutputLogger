@@ -41,6 +41,6 @@ jobs:
         run: dotnet nuget push "artifacts\*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
       - name: Tag release
         run: |
-          $VERSION = (Get-ChildItem ./artifacts/*.nupkg | Select-Object -First 1).BaseName -replace '^AzureFunctionInputOutputLogger\.', ''
+          $VERSION = (Get-ChildItem ./artifacts/Bazuzi.AzureFunctionInputOutputLogger.[0-9]*.nupkg | Select-Object -First 1).BaseName -replace '^Bazuzi\.AzureFunctionInputOutputLogger\.', ''
           git tag "v$VERSION"
           git push origin "v$VERSION"

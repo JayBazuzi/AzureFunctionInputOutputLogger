@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Microsoft.Azure.Functions.Worker.Http;
 
 namespace AzureFunctionInputOutputLogger.Tests;
@@ -7,8 +7,8 @@ public class InputOutputLoggingMiddlewareTests
 {
     private static InputOutputLoggingMiddleware CreateMiddleware(
         CapturingLogger<InputOutputLoggingMiddleware> logger,
-        bool requireMarkerAttribute = false) =>
-        new(
+        bool requireMarkerAttribute = false)
+        => new(
             logger,
             requireMarkerAttribute,
             context => new ValueTask<HttpRequestData?>(((FakeFunctionContext)context).Request),

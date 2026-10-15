@@ -3,15 +3,16 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <PackageId>AzureFunctionInputOutputLogger</PackageId>
+    <PackageId>Bazuzi.AzureFunctionInputOutputLogger</PackageId>
     <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
-    <Description>Logs the query parameters, request body and response body of HTTP-triggered Azure Functions running in the isolated worker model.</Description>
+    <Description>Logs the query parameters, request body and response body of HTTP-triggered Azure Functions running in the isolated worker model with the built-in HTTP model (HttpRequestData / HttpResponseData).</Description>
   </PropertyGroup>
   <ItemGroup>
     <None Include="PACKAGE.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="AzureFunctionInputOutputLogger.Tests" />
+    <InternalsVisibleTo Include="AzureFunctionInputOutputLogger.AspNetCore" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Worker" />

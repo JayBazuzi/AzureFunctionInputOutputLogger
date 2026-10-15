@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using AzureFunctionInputOutputLogger;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,7 +13,7 @@ public class MarkedEchoFunction
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData request)
     {
-    // end-snippet
+        // end-snippet
         var body = await new StreamReader(request.Body).ReadToEndAsync();
 
         var response = request.CreateResponse(HttpStatusCode.OK);

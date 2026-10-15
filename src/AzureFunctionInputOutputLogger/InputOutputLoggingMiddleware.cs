@@ -86,7 +86,7 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
     }
 
     // The entry point is "Namespace.Class.Method"; the attribute may be on the method or its class.
-    private static bool HasMarker(FunctionContext context)
+    internal static bool HasMarker(FunctionContext context)
     {
         var definition = context.FunctionDefinition;
         return MarkerCache.GetOrAdd((definition.PathToAssembly, definition.EntryPoint), key =>
@@ -122,8 +122,8 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
         });
     }
 
-    private static string FormatQuery(HttpRequestData request) =>
-        string.Join(
+    private static string FormatQuery(HttpRequestData request)
+        => string.Join(
             "&",
             request.Query.AllKeys
                 .Where(key => key is not null)
@@ -132,7 +132,7 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
 
     // The body is only logged when the stream can be rewound, so that the function (or the host)
     // still sees it unconsumed. Otherwise we note that it was skipped rather than break the invocation.
-    private static async Task<string> ReadBodyAsync(Stream? body)
+    internal static async Task<string> ReadBodyAsync(Stream? body)
     {
         if (body is null)
         {

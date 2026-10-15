@@ -16,8 +16,8 @@ internal sealed class CapturingLogger<T> : ILogger<T>
 
     public bool IsEnabled(LogLevel logLevel) => true;
 
-    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
-        Messages.Add($"{logLevel}: {formatter(state, exception)}");
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        => Messages.Add($"{logLevel}: {formatter(state, exception)}");
 }
 
 internal sealed class FakeFeatures : IInvocationFeatures

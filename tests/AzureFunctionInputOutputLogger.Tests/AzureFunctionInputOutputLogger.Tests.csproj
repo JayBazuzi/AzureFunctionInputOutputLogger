@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\AzureFunctionInputOutputLogger\AzureFunctionInputOutputLogger.csproj" />
+    <ProjectReference Include="..\..\src\AzureFunctionInputOutputLogger.AspNetCore\AzureFunctionInputOutputLogger.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

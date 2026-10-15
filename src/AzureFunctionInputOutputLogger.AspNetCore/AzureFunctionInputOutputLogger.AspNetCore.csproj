@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>AzureFunctionInputOutputLogger</RootNamespace>
+    <PackageId>Bazuzi.AzureFunctionInputOutputLogger.AspNetCore</PackageId>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
+    <Description>Logs the query parameters, request body and response body of HTTP-triggered Azure Functions running in the isolated worker model with ASP.NET Core integration (HttpRequest / IActionResult).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="PACKAGE.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AzureFunctionInputOutputLogger.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Shares [LogInputOutput] and the built-in HTTP model's middleware, which handles invocations without an HttpContext. -->
+    <ProjectReference Include="..\AzureFunctionInputOutputLogger\AzureFunctionInputOutputLogger.csproj" />
+  </ItemGroup>
+</Project>

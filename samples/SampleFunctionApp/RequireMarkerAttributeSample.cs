@@ -1,4 +1,4 @@
-using AzureFunctionInputOutputLogger;
+﻿using AzureFunctionInputOutputLogger;
 using Microsoft.Azure.Functions.Worker;
 
 namespace SampleFunctionApp;

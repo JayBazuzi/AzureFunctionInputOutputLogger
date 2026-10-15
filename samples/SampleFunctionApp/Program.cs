@@ -1,4 +1,4 @@
-using AzureFunctionInputOutputLogger;
+﻿using AzureFunctionInputOutputLogger;
 using Microsoft.Extensions.Hosting;
 
 // begin-snippet: register-middleware

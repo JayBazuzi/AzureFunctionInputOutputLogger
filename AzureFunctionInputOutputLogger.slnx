@@ -1,9 +1,11 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/AzureFunctionInputOutputLogger/AzureFunctionInputOutputLogger.csproj" />
+    <Project Path="src/AzureFunctionInputOutputLogger.AspNetCore/AzureFunctionInputOutputLogger.AspNetCore.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/SampleFunctionApp/SampleFunctionApp.csproj" />
+    <Project Path="samples/AspNetCoreSampleFunctionApp/AspNetCoreSampleFunctionApp.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AzureFunctionInputOutputLogger.Tests/AzureFunctionInputOutputLogger.Tests.csproj" />
