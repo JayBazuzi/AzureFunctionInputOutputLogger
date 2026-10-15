@@ -8,6 +8,15 @@ For ASP.NET Core integration (`ConfigureFunctionsWebApplication`, `HttpRequest`,
 ## Usage
 
 <!-- snippet: register-middleware -->
+<a id='snippet-register-middleware'></a>
+```cs
+var host = new HostBuilder()
+    .ConfigureFunctionsWorkerDefaults(worker => worker.UseInputOutputLogging(requireMarkerAttribute: false))
+    .Build();
+
+host.Run();
+```
+<sup><a href='/samples/SampleFunctionApp/Program.cs#L4-L10' title='Snippet source file'>snippet source</a> | <a href='#snippet-register-middleware' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 See the [README](https://github.com/JayBazuzi/AzureFunctionInputOutputLogger#readme) for details.
