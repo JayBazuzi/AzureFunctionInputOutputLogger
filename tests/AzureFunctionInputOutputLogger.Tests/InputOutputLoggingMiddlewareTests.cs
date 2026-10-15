@@ -64,7 +64,7 @@ public class InputOutputLoggingMiddlewareTests
     {
         var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
         var context = new FakeFunctionContext();
-        context.Request = new FakeHttpRequestData(context, "POST", "https://example.test/api/orders?a=1&b=two", """{"item":"widget"}""");
+        context.Request = new FakeHttpRequestData(context, "POST", "https://example.test/api/orders?code=abc123&a=1&b=two", """{"item":"widget"}""");
 
         await CreateMiddleware(logger).Invoke(context, ctx =>
         {
