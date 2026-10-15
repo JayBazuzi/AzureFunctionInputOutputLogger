@@ -86,6 +86,7 @@ Each HTTP-triggered invocation then produces two `Information` log entries:
 ## Logging only marked functions
 
 To log only the functions you opt in, require the marker attribute and put `[LogInputOutput]` on the function method (or its class).
+To log only the request, use `[LogInput]`; to log only the response, use `[LogOutput]`.
 This works the same way in both packages.
 
 <!-- snippet: aspnetcore-require-marker-attribute -->

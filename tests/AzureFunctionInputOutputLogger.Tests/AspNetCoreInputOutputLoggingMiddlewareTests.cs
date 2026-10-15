@@ -38,7 +38,7 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
             requireMarkerAttribute,
             _ => invocation.HttpContext,
             _ => invocation.Result,
-            context => ((FakeFunctionContext)context).IsMarked,
+            context => ((FakeFunctionContext)context).MarkedParts,
             fallback ?? new RecordingMiddleware());
 
     private static DefaultHttpContext CreateHttpContext(string method, string path, string query, string body)
@@ -158,7 +158,7 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
         {
             HttpContext = CreateHttpContext("GET", "/api/x", "", ""),
         };
-        invocation.Context.IsMarked = true;
+        invocation.Context.MarkedParts = LoggedParts.InputAndOutput;
 
         await CreateMiddleware(logger, invocation, requireMarkerAttribute: true).Invoke(invocation.Context, _ =>
         {
@@ -167,6 +167,27 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
         });
 
         Assert.Equal(2, logger.Messages.Count);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task LogsOnlyTheMarkedParts(bool input, bool output)
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var invocation = new Invocation
+        {
+            HttpContext = CreateHttpContext("POST", "/api/orders", "", """{"item":"widget"}"""),
+        };
+        invocation.Context.Mark(input, output);
+
+        await CreateMiddleware(logger, invocation, requireMarkerAttribute: true).Invoke(invocation.Context, _ =>
+        {
+            invocation.Result = new ObjectResult(new { Id = 42 }) { StatusCode = 201 };
+            return Task.CompletedTask;
+        });
+
+        await Verify(logger.Messages).UseParameters(input, output);
     }
 
     [Fact]

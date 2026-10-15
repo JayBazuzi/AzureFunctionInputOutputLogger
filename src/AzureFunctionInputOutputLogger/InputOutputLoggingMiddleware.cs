@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Functions.Worker;
@@ -14,13 +14,13 @@ namespace AzureFunctionInputOutputLogger;
 /// </summary>
 internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
 {
-    private static readonly ConcurrentDictionary<(string? Assembly, string? EntryPoint), bool> MarkerCache = new();
+    private static readonly ConcurrentDictionary<(string? Assembly, string? EntryPoint), LoggedParts> MarkerCache = new();
 
     private readonly ILogger<InputOutputLoggingMiddleware> _logger;
     private readonly bool _requireMarkerAttribute;
     private readonly Func<FunctionContext, ValueTask<HttpRequestData?>> _getRequest;
     private readonly Func<FunctionContext, HttpResponseData?> _getResponse;
-    private readonly Func<FunctionContext, bool> _isMarked;
+    private readonly Func<FunctionContext, LoggedParts> _getMarkedParts;
 
     public InputOutputLoggingMiddleware(
         ILogger<InputOutputLoggingMiddleware> logger,
@@ -30,7 +30,7 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
             requireMarkerAttribute,
             context => context.GetHttpRequestDataAsync(),
             context => context.GetHttpResponseData(),
-            HasMarker)
+            GetMarkedParts)
     {
     }
 
@@ -40,18 +40,19 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
         bool requireMarkerAttribute,
         Func<FunctionContext, ValueTask<HttpRequestData?>> getRequest,
         Func<FunctionContext, HttpResponseData?> getResponse,
-        Func<FunctionContext, bool> isMarked)
+        Func<FunctionContext, LoggedParts> getMarkedParts)
     {
         _logger = logger;
         _requireMarkerAttribute = requireMarkerAttribute;
         _getRequest = getRequest;
         _getResponse = getResponse;
-        _isMarked = isMarked;
+        _getMarkedParts = getMarkedParts;
     }
 
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
-        if (_requireMarkerAttribute && !_isMarked(context))
+        var parts = _requireMarkerAttribute ? _getMarkedParts(context) : LoggedParts.InputAndOutput;
+        if (parts == LoggedParts.None)
         {
             await next(context);
             return;
@@ -64,14 +65,22 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
             return;
         }
 
-        _logger.LogInformation(
-            "Request {Method} {Path} query: {Query} body: {Body}",
-            request.Method,
-            request.Url.AbsolutePath,
-            FormatQuery(request),
-            await ReadBodyAsync(request.Body));
+        if (parts.HasFlag(LoggedParts.Input))
+        {
+            _logger.LogInformation(
+                "Request {Method} {Path} query: {Query} body: {Body}",
+                request.Method,
+                request.Url.AbsolutePath,
+                FormatQuery(request),
+                await ReadBodyAsync(request.Body));
+        }
 
         await next(context);
+
+        if (!parts.HasFlag(LoggedParts.Output))
+        {
+            return;
+        }
 
         var response = _getResponse(context);
         if (response is null)
@@ -85,21 +94,21 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
             await ReadBodyAsync(response.Body));
     }
 
-    // The entry point is "Namespace.Class.Method"; the attribute may be on the method or its class.
-    internal static bool HasMarker(FunctionContext context)
+    // The entry point is "Namespace.Class.Method"; the attributes may be on the method or its class.
+    internal static LoggedParts GetMarkedParts(FunctionContext context)
     {
         var definition = context.FunctionDefinition;
         return MarkerCache.GetOrAdd((definition.PathToAssembly, definition.EntryPoint), key =>
         {
             if (key.Assembly is null || key.EntryPoint is null)
             {
-                return false;
+                return LoggedParts.None;
             }
 
             var split = key.EntryPoint.LastIndexOf('.');
             if (split < 0)
             {
-                return false;
+                return LoggedParts.None;
             }
 
             var assemblyName = AssemblyName.GetAssemblyName(key.Assembly);
@@ -110,15 +119,29 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
             var type = assembly.GetType(key.EntryPoint[..split]);
             if (type is null)
             {
-                return false;
+                return LoggedParts.None;
             }
 
             var method = type.GetMethod(
                 key.EntryPoint[(split + 1)..],
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
-            return type.IsDefined(typeof(LogInputOutputAttribute), inherit: true)
-                || (method?.IsDefined(typeof(LogInputOutputAttribute), inherit: true) ?? false);
+            bool IsMarkedWith<TAttribute>() where TAttribute : Attribute
+                => type.IsDefined(typeof(TAttribute), inherit: true)
+                || (method?.IsDefined(typeof(TAttribute), inherit: true) ?? false);
+
+            var parts = LoggedParts.None;
+            if (IsMarkedWith<LogInputOutputAttribute>() || IsMarkedWith<LogInputAttribute>())
+            {
+                parts |= LoggedParts.Input;
+            }
+
+            if (IsMarkedWith<LogInputOutputAttribute>() || IsMarkedWith<LogOutputAttribute>())
+            {
+                parts |= LoggedParts.Output;
+            }
+
+            return parts;
         });
     }
 

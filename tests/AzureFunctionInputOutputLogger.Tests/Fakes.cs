@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Immutable;
+﻿using System.Collections;
 using System.Net;
 using System.Security.Claims;
 using Microsoft.Azure.Functions.Worker;
@@ -37,7 +36,10 @@ internal sealed class FakeFunctionContext : FunctionContext
 {
     private readonly FakeFeatures _features = new();
 
-    public bool IsMarked { get; set; }
+    public LoggedParts MarkedParts { get; set; }
+
+    public void Mark(bool input, bool output)
+        => MarkedParts = (input ? LoggedParts.Input : LoggedParts.None) | (output ? LoggedParts.Output : LoggedParts.None);
 
     public HttpRequestData? Request { get; set; }
 

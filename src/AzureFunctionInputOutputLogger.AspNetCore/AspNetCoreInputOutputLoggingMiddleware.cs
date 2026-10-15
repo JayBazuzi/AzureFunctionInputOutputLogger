@@ -26,7 +26,7 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
     private readonly bool _requireMarkerAttribute;
     private readonly Func<FunctionContext, HttpContext?> _getHttpContext;
     private readonly Func<FunctionContext, object?> _getInvocationResult;
-    private readonly Func<FunctionContext, bool> _isMarked;
+    private readonly Func<FunctionContext, LoggedParts> _getMarkedParts;
     private readonly IFunctionsWorkerMiddleware _fallback;
 
     public AspNetCoreInputOutputLoggingMiddleware(
@@ -37,7 +37,7 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
             requireMarkerAttribute,
             context => context.GetHttpContext(),
             context => context.GetInvocationResult().Value,
-            InputOutputLoggingMiddleware.HasMarker,
+            InputOutputLoggingMiddleware.GetMarkedParts,
             new InputOutputLoggingMiddleware(logger, requireMarkerAttribute))
     {
     }
@@ -48,14 +48,14 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
         bool requireMarkerAttribute,
         Func<FunctionContext, HttpContext?> getHttpContext,
         Func<FunctionContext, object?> getInvocationResult,
-        Func<FunctionContext, bool> isMarked,
+        Func<FunctionContext, LoggedParts> getMarkedParts,
         IFunctionsWorkerMiddleware fallback)
     {
         _logger = logger;
         _requireMarkerAttribute = requireMarkerAttribute;
         _getHttpContext = getHttpContext;
         _getInvocationResult = getInvocationResult;
-        _isMarked = isMarked;
+        _getMarkedParts = getMarkedParts;
         _fallback = fallback;
     }
 
@@ -68,23 +68,32 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
             return;
         }
 
-        if (_requireMarkerAttribute && !_isMarked(context))
+        var parts = _requireMarkerAttribute ? _getMarkedParts(context) : LoggedParts.InputAndOutput;
+        if (parts == LoggedParts.None)
         {
             await next(context);
             return;
         }
 
-        var request = httpContext.Request;
-        request.EnableBuffering();
+        if (parts.HasFlag(LoggedParts.Input))
+        {
+            var request = httpContext.Request;
+            request.EnableBuffering();
 
-        _logger.LogInformation(
-            "Request {Method} {Path} query: {Query} body: {Body}",
-            request.Method,
-            request.Path.Value,
-            FormatQuery(request),
-            await InputOutputLoggingMiddleware.ReadBodyAsync(request.Body));
+            _logger.LogInformation(
+                "Request {Method} {Path} query: {Query} body: {Body}",
+                request.Method,
+                request.Path.Value,
+                FormatQuery(request),
+                await InputOutputLoggingMiddleware.ReadBodyAsync(request.Body));
+        }
 
         await next(context);
+
+        if (!parts.HasFlag(LoggedParts.Output))
+        {
+            return;
+        }
 
         var response = await DescribeResultAsync(_getInvocationResult(context));
         if (response is null)
