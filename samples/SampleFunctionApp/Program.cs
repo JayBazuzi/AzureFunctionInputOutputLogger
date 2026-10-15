@@ -1,4 +1,4 @@
-﻿using AzureFunctionInputOutputLogger;
+﻿using Bazuzi.AzureFunctionInputOutputLogger;
 using Microsoft.Extensions.Hosting;
 
 // begin-snippet: register-middleware

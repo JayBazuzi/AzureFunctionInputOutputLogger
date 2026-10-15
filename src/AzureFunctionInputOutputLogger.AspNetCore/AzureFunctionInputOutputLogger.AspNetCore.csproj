@@ -3,7 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>AzureFunctionInputOutputLogger</RootNamespace>
+    <RootNamespace>Bazuzi.AzureFunctionInputOutputLogger</RootNamespace>
     <PackageId>Bazuzi.AzureFunctionInputOutputLogger.AspNetCore</PackageId>
     <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
     <Description>Logs the query parameters, request body and response body of HTTP-triggered Azure Functions running in the isolated worker model with ASP.NET Core integration (HttpRequest / IActionResult).</Description>

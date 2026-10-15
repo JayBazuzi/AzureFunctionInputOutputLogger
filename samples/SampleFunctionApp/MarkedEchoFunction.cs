@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using AzureFunctionInputOutputLogger;
+using Bazuzi.AzureFunctionInputOutputLogger;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 

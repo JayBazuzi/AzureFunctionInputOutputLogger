@@ -6,7 +6,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Logging;
 
-namespace AzureFunctionInputOutputLogger;
+namespace Bazuzi.AzureFunctionInputOutputLogger;
 
 /// <summary>
 /// Logs the query parameters and body of each HTTP request, and the status code and body of its response.

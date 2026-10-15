@@ -5,7 +5,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-namespace AzureFunctionInputOutputLogger.Tests;
+namespace Bazuzi.AzureFunctionInputOutputLogger.Tests;
 
 internal sealed class CapturingLogger<T> : ILogger<T>
 {

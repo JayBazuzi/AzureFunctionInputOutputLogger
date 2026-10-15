@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace AzureFunctionInputOutputLogger;
+namespace Bazuzi.AzureFunctionInputOutputLogger;
 
 public static class AspNetCoreFunctionsWorkerApplicationBuilderExtensions
 {

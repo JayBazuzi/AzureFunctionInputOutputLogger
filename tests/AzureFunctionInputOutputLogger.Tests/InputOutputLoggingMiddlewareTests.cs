@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Microsoft.Azure.Functions.Worker.Http;
 
-namespace AzureFunctionInputOutputLogger.Tests;
+namespace Bazuzi.AzureFunctionInputOutputLogger.Tests;
 
 public class InputOutputLoggingMiddlewareTests
 {

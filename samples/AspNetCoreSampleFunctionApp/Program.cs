@@ -1,4 +1,4 @@
-﻿using AzureFunctionInputOutputLogger;
+﻿using Bazuzi.AzureFunctionInputOutputLogger;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Hosting;
 

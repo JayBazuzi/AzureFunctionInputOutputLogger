@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
-namespace AzureFunctionInputOutputLogger.Tests;
+namespace Bazuzi.AzureFunctionInputOutputLogger.Tests;
 
 public class AspNetCoreInputOutputLoggingMiddlewareTests
 {

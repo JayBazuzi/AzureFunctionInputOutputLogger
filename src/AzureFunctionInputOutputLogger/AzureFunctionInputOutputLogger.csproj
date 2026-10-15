@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Bazuzi.AzureFunctionInputOutputLogger</RootNamespace>
     <PackageId>Bazuzi.AzureFunctionInputOutputLogger</PackageId>
     <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
     <Description>Logs the query parameters, request body and response body of HTTP-triggered Azure Functions running in the isolated worker model with the built-in HTTP model (HttpRequestData / HttpResponseData).</Description>

@@ -1,4 +1,4 @@
-﻿namespace AzureFunctionInputOutputLogger;
+﻿namespace Bazuzi.AzureFunctionInputOutputLogger;
 
 [Flags]
 internal enum LoggedParts

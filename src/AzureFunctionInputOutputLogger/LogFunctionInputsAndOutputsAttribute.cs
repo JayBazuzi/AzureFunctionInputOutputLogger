@@ -1,4 +1,4 @@
-﻿namespace AzureFunctionInputOutputLogger;
+﻿namespace Bazuzi.AzureFunctionInputOutputLogger;
 
 /// <summary>
 /// Marks a function (or a class of functions) whose input and output should be logged

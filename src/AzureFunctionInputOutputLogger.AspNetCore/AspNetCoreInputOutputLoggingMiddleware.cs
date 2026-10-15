@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Logging;
 
-namespace AzureFunctionInputOutputLogger;
+namespace Bazuzi.AzureFunctionInputOutputLogger;
 
 /// <summary>
 /// Logs HTTP requests and responses for apps using ASP.NET Core integration (<c>ConfigureFunctionsWebApplication</c>).
