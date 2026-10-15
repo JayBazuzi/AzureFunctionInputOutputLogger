@@ -7,10 +7,12 @@ public class InputOutputLoggingMiddlewareTests
 {
     private static InputOutputLoggingMiddleware CreateMiddleware(
         CapturingLogger<InputOutputLoggingMiddleware> logger,
-        bool requireMarkerAttribute = false)
+        bool requireMarkerAttribute = false,
+        string[]? redactedQueryParameters = null)
         => new(
             logger,
             requireMarkerAttribute,
+            new QueryFormatter(redactedQueryParameters ?? []),
             context => new ValueTask<HttpRequestData?>(((FakeFunctionContext)context).Request),
             context => ((FakeFunctionContext)context).Response,
             context => ((FakeFunctionContext)context).MarkedParts);
@@ -81,6 +83,22 @@ public class InputOutputLoggingMiddlewareTests
         context.Request = new FakeHttpRequestData(context, "GET", "https://example.test/api/orders?Code=secret1&code=secret2&name=widget&tag=a&tag=b", "");
 
         await CreateMiddleware(logger).Invoke(context, ctx =>
+        {
+            context.Response = new FakeHttpResponseData(ctx, HttpStatusCode.OK, "");
+            return Task.CompletedTask;
+        });
+
+        await Verify(logger.Messages);
+    }
+
+    [Fact]
+    public async Task RedactsConfiguredQueryParameters()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var context = new FakeFunctionContext();
+        context.Request = new FakeHttpRequestData(context, "GET", "https://example.test/api/orders?ACCESS_TOKEN=token&code=key&sig=signature&id=7", "");
+
+        await CreateMiddleware(logger, redactedQueryParameters: ["access_token"]).Invoke(context, ctx =>
         {
             context.Response = new FakeHttpResponseData(ctx, HttpStatusCode.OK, "");
             return Task.CompletedTask;

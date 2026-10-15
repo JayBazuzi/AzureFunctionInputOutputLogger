@@ -18,16 +18,19 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
 
     private readonly ILogger<InputOutputLoggingMiddleware> _logger;
     private readonly bool _requireMarkerAttribute;
+    private readonly QueryFormatter _queryFormatter;
     private readonly Func<FunctionContext, ValueTask<HttpRequestData?>> _getRequest;
     private readonly Func<FunctionContext, HttpResponseData?> _getResponse;
     private readonly Func<FunctionContext, LoggedParts> _getMarkedParts;
 
     public InputOutputLoggingMiddleware(
         ILogger<InputOutputLoggingMiddleware> logger,
-        bool requireMarkerAttribute)
+        bool requireMarkerAttribute,
+        QueryFormatter queryFormatter)
         : this(
             logger,
             requireMarkerAttribute,
+            queryFormatter,
             context => context.GetHttpRequestDataAsync(),
             context => context.GetHttpResponseData(),
             GetMarkedParts)
@@ -38,12 +41,14 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
     internal InputOutputLoggingMiddleware(
         ILogger<InputOutputLoggingMiddleware> logger,
         bool requireMarkerAttribute,
+        QueryFormatter queryFormatter,
         Func<FunctionContext, ValueTask<HttpRequestData?>> getRequest,
         Func<FunctionContext, HttpResponseData?> getResponse,
         Func<FunctionContext, LoggedParts> getMarkedParts)
     {
         _logger = logger;
         _requireMarkerAttribute = requireMarkerAttribute;
+        _queryFormatter = queryFormatter;
         _getRequest = getRequest;
         _getResponse = getResponse;
         _getMarkedParts = getMarkedParts;
@@ -145,8 +150,8 @@ internal sealed class InputOutputLoggingMiddleware : IFunctionsWorkerMiddleware
         });
     }
 
-    private static string FormatQuery(HttpRequestData request)
-        => QueryFormatter.Format(
+    private string FormatQuery(HttpRequestData request)
+        => _queryFormatter.Format(
             request.Query.AllKeys
                 .OfType<string>()
                 .SelectMany(key => (request.Query.GetValues(key) ?? [])

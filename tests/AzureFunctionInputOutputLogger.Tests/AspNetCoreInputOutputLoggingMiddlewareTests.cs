@@ -32,10 +32,12 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
         CapturingLogger<InputOutputLoggingMiddleware> logger,
         Invocation invocation,
         bool requireMarkerAttribute = false,
-        IFunctionsWorkerMiddleware? fallback = null)
+        IFunctionsWorkerMiddleware? fallback = null,
+        string[]? redactedQueryParameters = null)
         => new(
             logger,
             requireMarkerAttribute,
+            new QueryFormatter(redactedQueryParameters ?? []),
             _ => invocation.HttpContext,
             _ => invocation.Result,
             context => ((FakeFunctionContext)context).MarkedParts,
@@ -79,6 +81,24 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
         };
 
         await CreateMiddleware(logger, invocation).Invoke(invocation.Context, _ =>
+        {
+            invocation.Result = new OkResult();
+            return Task.CompletedTask;
+        });
+
+        await Verify(logger.Messages);
+    }
+
+    [Fact]
+    public async Task RedactsConfiguredQueryParameters()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var invocation = new Invocation
+        {
+            HttpContext = CreateHttpContext("GET", "/api/orders", "?ACCESS_TOKEN=token&code=key&sig=signature&id=7", ""),
+        };
+
+        await CreateMiddleware(logger, invocation, redactedQueryParameters: ["access_token"]).Invoke(invocation.Context, _ =>
         {
             invocation.Result = new OkResult();
             return Task.CompletedTask;

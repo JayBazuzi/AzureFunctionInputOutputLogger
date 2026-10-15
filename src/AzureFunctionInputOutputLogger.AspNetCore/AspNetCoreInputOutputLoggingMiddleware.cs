@@ -24,6 +24,7 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
 
     private readonly ILogger<InputOutputLoggingMiddleware> _logger;
     private readonly bool _requireMarkerAttribute;
+    private readonly QueryFormatter _queryFormatter;
     private readonly Func<FunctionContext, HttpContext?> _getHttpContext;
     private readonly Func<FunctionContext, object?> _getInvocationResult;
     private readonly Func<FunctionContext, LoggedParts> _getMarkedParts;
@@ -31,14 +32,16 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
 
     public AspNetCoreInputOutputLoggingMiddleware(
         ILogger<InputOutputLoggingMiddleware> logger,
-        bool requireMarkerAttribute)
+        bool requireMarkerAttribute,
+        QueryFormatter queryFormatter)
         : this(
             logger,
             requireMarkerAttribute,
+            queryFormatter,
             context => context.GetHttpContext(),
             context => context.GetInvocationResult().Value,
             InputOutputLoggingMiddleware.GetMarkedParts,
-            new InputOutputLoggingMiddleware(logger, requireMarkerAttribute))
+            new InputOutputLoggingMiddleware(logger, requireMarkerAttribute, queryFormatter))
     {
     }
 
@@ -46,6 +49,7 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
     internal AspNetCoreInputOutputLoggingMiddleware(
         ILogger<InputOutputLoggingMiddleware> logger,
         bool requireMarkerAttribute,
+        QueryFormatter queryFormatter,
         Func<FunctionContext, HttpContext?> getHttpContext,
         Func<FunctionContext, object?> getInvocationResult,
         Func<FunctionContext, LoggedParts> getMarkedParts,
@@ -53,6 +57,7 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
     {
         _logger = logger;
         _requireMarkerAttribute = requireMarkerAttribute;
+        _queryFormatter = queryFormatter;
         _getHttpContext = getHttpContext;
         _getInvocationResult = getInvocationResult;
         _getMarkedParts = getMarkedParts;
@@ -117,7 +122,7 @@ internal sealed class AspNetCoreInputOutputLoggingMiddleware : IFunctionsWorkerM
             _ => null,
         };
 
-    private static string FormatQuery(HttpRequest request)
-        => QueryFormatter.Format(
+    private string FormatQuery(HttpRequest request)
+        => _queryFormatter.Format(
             request.Query.SelectMany(pair => pair.Value.Select(value => (pair.Key, value))));
 }
