@@ -1,8 +1,12 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Bazuzi.AzureFunctionInputOutputLogger.Tests;
 
@@ -69,6 +73,34 @@ public class AspNetCoreInputOutputLoggingMiddlewareTests
         });
 
         await Verify(logger.Messages);
+    }
+
+    [Fact]
+    public async Task LogsTheValueThatAspNetCoreLogsOnlyTheTypeOf()
+    {
+        var logger = new CapturingLogger<InputOutputLoggingMiddleware>();
+        var aspNetCoreLogs = new CapturingLoggerProvider();
+        var invocation = new Invocation
+        {
+            HttpContext = CreateHttpContext("GET", "/api/x", "", ""),
+        };
+        invocation.HttpContext.RequestServices = new ServiceCollection()
+            .AddLogging(logging => logging.AddProvider(aspNetCoreLogs))
+            .AddMvcCore().Services
+            .BuildServiceProvider();
+
+        // begin-snippet: anonymous-object-result
+        var result = new OkObjectResult(new { x = 1, y = "two" });
+        // end-snippet
+
+        await CreateMiddleware(logger, invocation).Invoke(invocation.Context, _ =>
+        {
+            invocation.Result = result;
+            return Task.CompletedTask;
+        });
+        await result.ExecuteResultAsync(new ActionContext(invocation.HttpContext, new RouteData(), new ActionDescriptor()));
+
+        await Verify(new { aspNetCore = aspNetCoreLogs.Messages, thisPackage = logger.Messages });
     }
 
     [Fact]

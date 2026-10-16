@@ -19,6 +19,19 @@ internal sealed class CapturingLogger<T> : ILogger<T>
         => Messages.Add($"{logLevel}: {formatter(state, exception)}");
 }
 
+internal sealed class CapturingLoggerProvider : ILoggerProvider
+{
+    private readonly CapturingLogger<object> _logger = new();
+
+    public List<string> Messages => _logger.Messages;
+
+    public ILogger CreateLogger(string categoryName) => _logger;
+
+    public void Dispose()
+    {
+    }
+}
+
 internal sealed class FakeFeatures : IInvocationFeatures
 {
     private readonly Dictionary<Type, object> _features = [];
