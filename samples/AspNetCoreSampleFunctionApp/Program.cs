@@ -3,8 +3,9 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Hosting;
 
 // begin-snippet: register-aspnetcore-middleware
-var builder = FunctionsApplication.CreateBuilder(args).ConfigureFunctionsWebApplication();
-builder.UseAspNetCoreInputOutputLogging(requireMarkerAttribute: false);
-
-builder.Build().Run();
+FunctionsApplication.CreateBuilder(args)
+    .ConfigureFunctionsWebApplication()
+    .UseAspNetCoreInputOutputLogging(requireMarkerAttribute: false)
+    .Build()
+    .Run();
 // end-snippet
