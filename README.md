@@ -30,14 +30,12 @@ Add `Bazuzi.AzureFunctionInputOutputLogger.AspNetCore`, then register the middle
 <!-- snippet: register-aspnetcore-middleware -->
 <a id='snippet-register-aspnetcore-middleware'></a>
 ```cs
-var builder = FunctionsApplication.CreateBuilder(args);
-
-builder.ConfigureFunctionsWebApplication();
+var builder = FunctionsApplication.CreateBuilder(args).ConfigureFunctionsWebApplication();
 builder.UseAspNetCoreInputOutputLogging(requireMarkerAttribute: false);
 
 builder.Build().Run();
 ```
-<sup><a href='/samples/AspNetCoreSampleFunctionApp/Program.cs#L5-L12' title='Snippet source file'>snippet source</a> | <a href='#snippet-register-aspnetcore-middleware' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/samples/AspNetCoreSampleFunctionApp/Program.cs#L5-L10' title='Snippet source file'>snippet source</a> | <a href='#snippet-register-aspnetcore-middleware' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 The response entry depends on what the function returns:

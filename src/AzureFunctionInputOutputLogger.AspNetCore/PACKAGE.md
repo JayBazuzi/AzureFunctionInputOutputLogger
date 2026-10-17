@@ -10,14 +10,12 @@ For the built-in HTTP model (`ConfigureFunctionsWorkerDefaults`, `HttpRequestDat
 <!-- snippet: register-aspnetcore-middleware -->
 <a id='snippet-register-aspnetcore-middleware'></a>
 ```cs
-var builder = FunctionsApplication.CreateBuilder(args);
-
-builder.ConfigureFunctionsWebApplication();
+var builder = FunctionsApplication.CreateBuilder(args).ConfigureFunctionsWebApplication();
 builder.UseAspNetCoreInputOutputLogging(requireMarkerAttribute: false);
 
 builder.Build().Run();
 ```
-<sup><a href='/samples/AspNetCoreSampleFunctionApp/Program.cs#L5-L12' title='Snippet source file'>snippet source</a> | <a href='#snippet-register-aspnetcore-middleware' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/samples/AspNetCoreSampleFunctionApp/Program.cs#L5-L10' title='Snippet source file'>snippet source</a> | <a href='#snippet-register-aspnetcore-middleware' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 To redact more query parameters, or to log only marked functions, configure `InputOutputLoggingOptions`:
