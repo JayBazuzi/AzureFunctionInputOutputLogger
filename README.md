@@ -74,7 +74,8 @@ host.Run();
 <sup><a href='/samples/SampleFunctionApp/Program.cs#L4-L10' title='Snippet source file'>snippet source</a> | <a href='#snippet-register-middleware' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
-## What gets logged<!-- include: log-output. path: /docs/log-output.include.md -->
+<!-- include: log-output. path: /docs/log-output.include.md -->
+## What gets logged
 
 Each HTTP-triggered invocation produces up to two `Information` log entries, one for the request and one for the response, with these message templates:
 
